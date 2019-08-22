@@ -36,7 +36,7 @@ def bundle_to_row(all_items:str, bundle:str, coefficient:float)->list:
     return result
 
 
-def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, allocation: list, slack=0.001) ->list:
+def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, allocation: list, slack=0.001, negative_prices:bool=False) ->list:
     """
     Given an allocation, try to find prices with which this allocation is a competitive equilibrium (return None of not found).
 
@@ -44,11 +44,12 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     :param budgets:  a list of numbers, each represents the budget of one agent.
     :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
     :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
-    :param slack:     the price of preferred bundles must be larger than the agent's budget by at least this amount.
+    :param slack:     the price of preferred bundles must be larger than the agent's budget by at least this amount. Default=0.001
+    :param negative_prices: whether to force all prices to be negative (for allocation of bads/chores). Default=False
     :return: the vector of prices, as returned by scipy.linprog
 
     >>> budgets = [5, 2]
-    >>> preferences = [["xy", "x", "y"], ["xy", "x", "y"]]
+    >>> preferences = [["xy", "x", "y", ""], ["xy", "x", "y", ""]]
     >>> print(find_equilibrium_prices("xy",preferences,budgets,allocation=["x","y"]))
     [5. 2.]
     >>> print(find_equilibrium_prices("xy",preferences,budgets,allocation=["y","x"]))
@@ -56,6 +57,16 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     >>> print(find_equilibrium_prices("xy",preferences,budgets,allocation=["xy",""], slack=0.001))
     [2.999 2.001]
     >>> print(find_equilibrium_prices("xy",preferences,budgets,allocation=["","xy"]))
+    None
+    >>> chore_preferences = [reversed(p) for p in preferences]
+    >>> chore_budgets = [-2, -5]
+    >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["y","x"], negative_prices=True))
+    [-5. -2.]
+    >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["x","y"], negative_prices=True))
+    None
+    >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["xy",""], negative_prices=True))
+    None
+    >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["","xy"], negative_prices=True))
     None
     """
     num_agents = len(budgets)
@@ -92,11 +103,16 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
             A_upperbound.append(bundle_to_row(all_items, better_bundle, -1))
             b_upperbound.append(-budgets[i]-slack)
 
-    bounds = (None,None)        # No bounds on the prices - the prices are allowed to be negative (important for chores)
+    bounds = (None, 0) if negative_prices else (0, None)
 
-    result = linprog(minimization_coefficients,
-        A_ub=A_upperbound, b_ub=b_upperbound, A_eq=A_equality, b_eq=b_equality,
-        bounds=bounds, method='revised simplex')
+    if len(b_upperbound)>0:
+        result = linprog(minimization_coefficients,
+            A_ub=A_upperbound, b_ub=b_upperbound, A_eq=A_equality, b_eq=b_equality,
+            bounds=bounds, method='revised simplex')
+    else:
+        result = linprog(minimization_coefficients,
+            A_eq=A_equality, b_eq=b_equality,
+            bounds=bounds, method='revised simplex')
     if result.status==1:
         raise ValueError("Iteration limit reached")
     elif result.status == 2:
@@ -107,7 +123,7 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
         return result.x
 
 
-def find_equilibrium(all_items:str, preferences:list, budgets:list)->(list,list):
+def find_equilibrium(all_items:str, preferences:list, budgets:list, slack=0.001, negative_prices:bool=False)->(list,list):
     """
     Given budgets and preferences, find an allocation and price-vector t
     that are a competitive equilibrium (return None of not found)
@@ -115,6 +131,9 @@ def find_equilibrium(all_items:str, preferences:list, budgets:list)->(list,list)
     :param items:    a string in which each char represents an item.
     :param budgets:  a list of numbers, each represents the budget of one agent.
     :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
+
+    :param slack:     the price of preferred bundles must be larger than the agent's budget by at least this amount. Default=0.001
+    :param negative_prices: whether to force all prices to be negative (for allocation of bads/chores). Default=False
     :return: a tuple (allocation, prices).
 
     >>> preferences = [["xy", "x", "y"], ["xy", "x", "y"]]
@@ -125,13 +144,14 @@ def find_equilibrium(all_items:str, preferences:list, budgets:list)->(list,list)
     >>> print(find_equilibrium("xy", preferences, [4,4]))
     None
     """
+    all_items = "".join(sorted(all_items))
     num_agents = len(budgets)
     if num_agents!=len(preferences):
         raise ValueError("Number of budgets ({}) does not match number of preferences ({})".format(len(budgets), len(preferences)))
 
     allocation_count = 1
     for allocation in allocations(all_items, num_agents):
-        prices = find_equilibrium_prices(all_items, preferences, budgets, allocation)
+        prices = find_equilibrium_prices(all_items, preferences, budgets, allocation, slack=slack, negative_prices=negative_prices)
         if prices is  None:
             trace("{}. Allocation {}:  no equilibrium prices".format(allocation_count, allocation))
         else:
@@ -140,15 +160,29 @@ def find_equilibrium(all_items:str, preferences:list, budgets:list)->(list,list)
         allocation_count += 1
     return None
 
+def display(equilibrium:tuple):
+    """
+    Pretty-print the result of find_equilibrium
+    :param equilibrium: a tuple returned from find_equilibrium.
+    :return:
+    """
+    if equilibrium is None:
+        print("No competitive equilibrium")
+    else:
+        allocation = equilibrium[0]
+        prices = equilibrium[1]
+        all_items = "".join(sorted("".join(allocation)))
+        print("Allocation {}:  equilibrium prices of {}={}".format(allocation, all_items, prices))
+
 
 if __name__ == "__main__":
     import doctest
     (failures,tests) = doctest.testmod(report=True)
     print ("{} failures, {} tests".format(failures,tests))
 
-    trace = print
-    preferences = [["xy", "x", "y"], ["xy", "x", "y"]]
-    print("\n Equilibrium with different budgets:")
-    find_equilibrium("xy", preferences, [3, 5])
-    print("\n No equilibrium with equal budgets:")
-    find_equilibrium("xy", preferences, [4, 4])
+    # trace = print
+    # preferences = [["xy", "x", "y"], ["xy", "x", "y"]]
+    # print("\n Equilibrium with different budgets:")
+    # find_equilibrium("xy", preferences, [3, 5])
+    # print("\n No equilibrium with equal budgets:")
+    # find_equilibrium("xy", preferences, [4, 4])

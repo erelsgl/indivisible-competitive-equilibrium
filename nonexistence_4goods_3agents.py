@@ -9,10 +9,11 @@ SINCE:  2019-08
 """
 
 
-import itertools
-import competitive_equilibrium
-competitive_equilibrium.trace = print
 import preferences
+import competitive_equilibrium as ce
+import sys
+if len(sys.argv)<2 or sys.argv[1]!="quiet":
+    ce.trace = print
 
 items = "wxyz"
 
@@ -28,9 +29,9 @@ preferences = [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl]
 budgets = [20, 11, 8]
 
 print("\nWith the preferences in the paper, there are no competitive equilibria:")
-competitive_equilibrium.find_equilibrium(items, preferences, budgets)
+ce.display(ce.find_equilibrium(items, preferences, budgets))
 
 print("\nAs a control, if we change Alice's preferences, there is a competitive equilibrium:")
 alternative_prefs_of_Alice = quartets + triplets + ["wx", "wy", "wz", "xy", "xz", "yz"] + singletons
-print(alternative_prefs_of_Alice)
-competitive_equilibrium.find_equilibrium(items, [alternative_prefs_of_Alice, prefs_of_Bob, prefs_of_Carl], budgets)
+# print(alternative_prefs_of_Alice)
+ce.display(ce.find_equilibrium(items, [alternative_prefs_of_Alice, prefs_of_Bob, prefs_of_Carl], budgets))
