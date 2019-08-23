@@ -5,7 +5,7 @@ Tries to automatically find pixeps in the case of 5 goods and 2 additive identic
 """
 
 
-from find_pixep_symbolic import *
+from symbolic_picking_sequences import *
 
 
 budget_vars = symbols("a,b")
