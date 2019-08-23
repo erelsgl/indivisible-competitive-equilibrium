@@ -17,10 +17,10 @@ if len(sys.argv)<2 or sys.argv[1]!="quiet":
 
 items = "wxyz"
 
-singletons = list(items)
-pairs = preferences.pairs(items)
-triplets = preferences.triplets(items)
-quartets = preferences.quartets(items)
+singletons = list(items)               # all singleton subsets in an arbitrary order
+pairs = preferences.pairs(items)       # all pairs of items in an arbitrary order
+triplets = preferences.triplets(items) # all triplets of items in an arbitrary order
+quartets = preferences.quartets(items) # all quartets of items in an arbitrary order
 
 prefs_of_Alice = quartets + triplets + ["wx", "yz", "wy", "xz", "wz", "xy"] + singletons
 prefs_of_Bob   = quartets + triplets + pairs + ["w", "x", "y", "z"]

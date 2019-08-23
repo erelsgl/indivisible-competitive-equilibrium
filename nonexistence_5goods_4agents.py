@@ -1,7 +1,7 @@
 #!python3
 
 """
-Proves the non-existence result for 4 goods and 4 agents
+Proves the non-existence result for 5 goods and 4 agents
 by exhaustively checking all allocations.
 
 AUTHOR: Erel Segal-Halevi
