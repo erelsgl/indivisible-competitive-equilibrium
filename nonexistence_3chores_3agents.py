@@ -18,12 +18,12 @@ if len(sys.argv)<2 or sys.argv[1]!="quiet":
 items = "xyz"
 
 prefs_of_any_agent = ["", "x","y","xy", "z", "zx","zy","zxy"]
-preferences = [prefs_of_any_agent, prefs_of_any_agent, prefs_of_any_agent]
+prefs = [prefs_of_any_agent, prefs_of_any_agent, prefs_of_any_agent]
 budgets = [-7, -8, -9]
 
 print("\nWith budgets as in the paper, there are no competitive equilibria:")
-ce.display(ce.find_equilibrium(items, preferences, budgets, negative_prices=True))
+ce.display(ce.find_equilibrium(items, prefs, budgets, negative_prices=True))
 
 print("\nAs a control, if we change the budgets, there is a competitive equilibrium:")
 alternative_budgets = [-3, -7, -15]
-ce.display(ce.find_equilibrium(items, preferences, alternative_budgets, negative_prices=True))
+ce.display(ce.find_equilibrium(items, prefs, alternative_budgets, negative_prices=True))
