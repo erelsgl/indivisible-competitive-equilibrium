@@ -1,7 +1,9 @@
 #!python3
 
 """
-Proves the non-equilibrium result for 4 goods and 2 agents (Appendix A).
+Proves the non-equilibrium result for 4 goods and 2 agents.
+
+See Appendix A.3, Lemma 9.
 
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08

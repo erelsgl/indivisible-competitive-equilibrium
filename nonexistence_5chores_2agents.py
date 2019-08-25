@@ -4,6 +4,10 @@
 Proves the non-existence result for 5 chores and 2 agents
 by exhaustively checking all allocations.
 
+The example is based on Section 7, Theorem 5;
+it is converted from goods to chores using the duality theorem.
+See Subsection 8.1, Theorem 6.
+
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08
 """

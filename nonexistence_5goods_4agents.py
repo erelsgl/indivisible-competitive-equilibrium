@@ -4,6 +4,10 @@
 Proves the non-existence result for 5 goods and 4 agents
 by exhaustively checking all allocations.
 
+The example is based on  Subsection 6.3, Theorem 4,
+with an additional "low-value item"
+as described in Subsection 6.2, Lemma 4.
+
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08
 """

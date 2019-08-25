@@ -4,6 +4,8 @@
 Proves the non-existence result for 4 goods and 4 agents
 by exhaustively checking all allocations.
 
+See Subsection 6.3, Theorem 4.
+
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08
 """

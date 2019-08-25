@@ -1,8 +1,11 @@
 #!python3
 
 """
-Proves the non-existence result for 3 goods and 3 agents (Appendix D),
+Proves the non-existence result for 3 goods and 3 agents
+where two agents have the same income,
 by exhaustively checking all allocations.
+
+See Appendix D, Example 4
 
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08

@@ -4,6 +4,8 @@
 Proves the non-existence result for 3 chores and 3 agents
 by exhaustively checking all allocations.
 
+See Subsection 8.2, Theorem 7.
+
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08
 """
