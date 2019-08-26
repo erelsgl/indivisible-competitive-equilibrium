@@ -20,8 +20,5 @@ The code for finding CE prices in the `competitive_equilibrium.py`:
 * The function `find_equilibrium_prices` accepts preferences, budgets and allocations,
 and looks for a price-vector with which this allocation is a CE. The check is done using a linear program
 in which the variables are the prices, and the constraints are budget equalities and preference inequalities.
-  * Note: in linear programming the constraints are weak inequalities, while for CE we need strict inequalities.
-To handle this, the function accepts a "slack" argument (defaults to 0.001) and looks for prices with which 
-each preferred bundle costs more than the budget by at least the slack.  
 * The function  `find_equilibrium` accepts preferences and budgets, and runs `find_equilibrium_prices` 
 on all the allocations, until a price-vector is found for one of the allocations.

@@ -42,4 +42,5 @@ ce.display(ce.find_equilibrium(items, [prefs_of_Alice, prefs_of_Bob], budgets, n
 print("\nAs a control, if we slightly change the preferences of Alice, there is a competitive equilibrium:")
 alternative_prefs_of_Alice = preferences.goods_to_chores(items, quintuplets + quartets + ["vwx","vwy","vwz","xyz"] + triplets_except_vwx_vwy_vwz_xyz + pairs + singletons + [""])
 alternative_prefs_of_Bob   = prefs_of_Bob
-ce.display(ce.find_equilibrium(items, [alternative_prefs_of_Alice, alternative_prefs_of_Bob], budgets, negative_prices=True))
+ce.display(
+    ce.find_equilibrium(items, [alternative_prefs_of_Alice, alternative_prefs_of_Bob], budgets, negative_prices=True))

@@ -25,7 +25,8 @@ prefs_of_Carl  = preferences.triplets(items) + preferences.pairs(items) + list(i
 budget_of_Alice = budget_of_Bob = 4;  budget_of_Carl = 2   # or any other a,b,c such that a=b > c
 
 print("\nWith only Alice and Bob, no competitive equilibria exists:")
-ce.display(ce.find_equilibrium(items, [prefs_of_Alice, prefs_of_Bob], [budget_of_Alice,budget_of_Bob]))
+ce.display(ce.find_equilibrium(items, [prefs_of_Alice, prefs_of_Bob], [budget_of_Alice, budget_of_Bob]))
 
 print("\nWith all three agents, a competitive equilibrium exists:")
-ce.display(ce.find_equilibrium(items, [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl], [budget_of_Alice,budget_of_Bob,budget_of_Carl]))
+ce.display(ce.find_equilibrium(items, [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl],
+                               [budget_of_Alice, budget_of_Bob, budget_of_Carl]))
