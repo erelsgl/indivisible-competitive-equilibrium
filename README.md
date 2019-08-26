@@ -15,7 +15,7 @@ but it uses specific numeric budgets.
 By editing the code and re-running, 
 you can see to what extent the non-existence is sensitive to changes in the budgets or preferences. 
 
-The code for finding CE prices in the `competitive_equilibrium.py`:
+The main CE search functions are in the file `competitive_equilibrium.py`:
 
 * The function `find_equilibrium_prices` accepts preferences, budgets and allocations,
 and looks for a price-vector with which this allocation is a CE. The check is done using a linear program
