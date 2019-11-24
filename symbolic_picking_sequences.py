@@ -13,7 +13,10 @@ from sympy.abc import a,b,x,y
 from sympy.solvers.solveset import linsolve
 from itertools import combinations
 
-trace = lambda *x: None  # To enable tracing, set trace=print
+import logging, sys
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+# To enable tracing, logger.setLevel(logging.INFO)
 
 
 def budget_equalities(sequence:str, price_vars:list, budget_vars:list)->list:
@@ -137,12 +140,12 @@ def show_prices(sequence:str, price_vars:list, budget_eqs:list, switches:list):
     switch_eqs = switch_equalities(switches, price_vars)
     prices_sol = linsolve(budget_eqs + switch_eqs, price_vars).args
     if len(prices_sol)==0:
-        trace("{}, {}: No prices!".format(sequence, switches))
+        logger.info("{}, {}: No prices!".format(sequence, switches))
         return
     prices = prices_sol[0]
     possible_budgets = budget_range(prices)
     if possible_budgets.is_EmptySet:
-        trace("{}, {}: {}, No budget!".format(sequence, switches, prices))
+        logger.info("{}, {}: {}, No budget!".format(sequence, switches, prices))
         return
     else:
         switches_str = ", ".join([str(s) for s in switches])

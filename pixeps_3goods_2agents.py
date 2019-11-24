@@ -11,7 +11,6 @@ from sympy import symbols
 budget_vars = symbols("a,b")
 price_vars = symbols("p3,p2,p1")
 
-# find_pixep_symbolic.trace = print
 analyze_sequence("AAA", [], price_vars, budget_vars)
 analyze_sequence("AAB", [], price_vars, budget_vars)
 analyze_sequence("ABA", [], price_vars, budget_vars)
