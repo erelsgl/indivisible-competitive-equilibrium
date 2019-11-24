@@ -15,9 +15,9 @@ SINCE:  2019-08
 
 import preferences
 import competitive_equilibrium as ce
-import sys
+import sys, logging
 if len(sys.argv)<2 or sys.argv[1]!="quiet":
-    ce.trace = print
+    ce.logger.setLevel(logging.INFO)
 
 items = "vwxyz"
 

@@ -5,7 +5,6 @@ Tries to automatically find pixeps in the case of 4 goods and 2 additive identic
 """
 
 
-import symbolic_picking_sequences
 from symbolic_picking_sequences import analyze_sequence
 from sympy import symbols
 

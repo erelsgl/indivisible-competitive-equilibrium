@@ -12,7 +12,10 @@ import numpy as np
 from scipy.optimize import linprog
 from allocations import allocations
 
-trace = lambda *x: None  # To enable tracing, set trace=print
+import logging, sys
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+# To enable tracing, logger.setLevel(logging.INFO)
 
 def bundle_to_row(all_items:str, bundle:str, coefficient:float)->list:
     """
@@ -179,9 +182,9 @@ def find_equilibrium(all_items: str, preferences: list, budgets: list, negative_
     for allocation in allocations(all_items, num_agents):
         prices = find_equilibrium_prices(all_items, preferences, budgets, allocation, negative_prices=negative_prices)
         if prices is  None:
-            trace("{}. Allocation {}:  no equilibrium prices".format(allocation_count, allocation))
+            logger.info("{}. Allocation {}:  no equilibrium prices".format(allocation_count, allocation))
         else:
-            trace("{}. Allocation {}:  equilibrium prices of {}={}".format(allocation_count, allocation, all_items, prices))
+            logger.info("{}. Allocation {}:  equilibrium prices of {}={}".format(allocation_count, allocation, all_items, prices))
             return (allocation, prices)
         allocation_count += 1
     return None
@@ -205,10 +208,3 @@ if __name__ == "__main__":
     import doctest
     (failures,tests) = doctest.testmod(report=True)
     print ("{} failures, {} tests".format(failures,tests))
-
-    # trace = print
-    # preferences = [["xy", "x", "y"], ["xy", "x", "y"]]
-    # print("\n Equilibrium with different budgets:")
-    # find_equilibrium("xy", preferences, [3, 5])
-    # print("\n No equilibrium with equal budgets:")
-    # find_equilibrium("xy", preferences, [4, 4])
