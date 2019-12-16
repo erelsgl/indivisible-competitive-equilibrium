@@ -28,3 +28,6 @@ ce.display(ce.find_equilibrium(items, prefs, budgets, negative_prices=True))
 print("\nAs a control, if we change the budgets, there is a competitive equilibrium:")
 alternative_budgets = [-3, -7, -15]
 ce.display(ce.find_equilibrium(items, prefs, alternative_budgets, negative_prices=True))
+
+print("\nEven a *personalized* competitive equilibrium does not exist:")
+ce.display(ce.find_personalized_equilibrium(items, prefs, budgets, negative_prices=True))

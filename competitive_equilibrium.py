@@ -453,7 +453,7 @@ def _solve_linear_program(minimization_coefficients, A_equality, b_equality, A_u
     if result.status==1:
         raise ValueError("Iteration limit reached")
     elif result.status == 2:
-        logger.info("linprog returned no feasible solution")
+        logger.debug("linprog returned no feasible solution")
         return None  #
     elif result.status==4:
         raise ValueError("Numerical difficulties encountered")

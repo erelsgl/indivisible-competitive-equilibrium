@@ -38,3 +38,6 @@ print("\nAs a control, if we change Alice's preferences, there is a competitive 
 alternative_prefs_of_Alice = quartets + triplets + ["wx", "wy", "wz", "xy", "xz", "yz"] + singletons
 # print(alternative_prefs_of_Alice)
 ce.display(ce.find_equilibrium(items, [alternative_prefs_of_Alice, prefs_of_Bob, prefs_of_Carl], budgets))
+
+print("\nWith the original preferences, even a *personalized* competitive equilibrium does not exist.")
+ce.display(ce.find_personalized_equilibrium(items, prefs, budgets))

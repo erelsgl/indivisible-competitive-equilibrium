@@ -38,3 +38,12 @@ ce.display(ce.find_equilibrium(items, prefs, budgets))
 print("\nAs a control, if we change the budgets, there is a competitive equilibrium:")
 alternative_budgets = [18, 11, 9, 6]
 ce.display(ce.find_equilibrium(items, prefs, alternative_budgets))
+
+print("\nInterestingly, a *personalized* competitive equilibrium exists!")
+ce.display(ce.find_personalized_equilibrium(items, prefs, budgets))
+# Allocation ['wx', 'z', 'y', '']
+# equilibrium prices of wxyz=[
+#  [11.   5.   9.  11. ]
+#  [12.5  3.5  9.  11. ]
+#  [ 3.5 12.5  9.  11. ]
+#  [ 8.   8.   9.  11. ]]

@@ -44,3 +44,6 @@ alternative_prefs_of_Alice = preferences.goods_to_chores(items, quintuplets + qu
 alternative_prefs_of_Bob   = prefs_of_Bob
 ce.display(
     ce.find_equilibrium(items, [alternative_prefs_of_Alice, alternative_prefs_of_Bob], budgets, negative_prices=True))
+
+print("\nWith the original preferences, even a *personalized* competitive equilibrium does not exist.")
+ce.display(ce.find_personalized_equilibrium(items, [prefs_of_Alice, prefs_of_Bob], budgets, negative_prices=True))
