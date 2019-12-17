@@ -4,6 +4,9 @@
 Tries to automatically find pixeps in the case of 5 goods and 2 additive identical agents.
 """
 
+import symbolic_picking_sequences, sys, logging
+if len(sys.argv)<2 or sys.argv[1]!="quiet":
+    symbolic_picking_sequences.logger.setLevel(logging.INFO)
 
 from symbolic_picking_sequences import *
 
@@ -13,7 +16,7 @@ price_vars = symbols('p5,p4,p3,p2,p1')
 
 
 def analyze_sequence(sequence:str, undetermined_switches:list, price_vars:list, budget_vars:list):
-    print(sequence)
+    symbolic_picking_sequences.logger.info(sequence)
     budget_eqs = budget_equalities(sequence, price_vars, budget_vars)
     if len(undetermined_switches)>=3:
         for switch_triplets in combinations(undetermined_switches, 3):
@@ -21,7 +24,7 @@ def analyze_sequence(sequence:str, undetermined_switches:list, price_vars:list, 
     else: # len(undetermined_switches)==2:
         for constraint in ["5:4","4:3","3:2","2:1","1:0"]:
             show_prices(sequence, price_vars, budget_eqs, undetermined_switches+[constraint])
-    print()
+    symbolic_picking_sequences.logger.info("\n")
 
 
 # analyze_sequence("ABABA", ["5:42","51:42","4:31"], price_vars, budget_vars)

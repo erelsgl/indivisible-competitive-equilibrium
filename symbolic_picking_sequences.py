@@ -129,7 +129,7 @@ def budget_range(prices:list):
         try:
             solution   = solveset(inequality, a, S.Reals)
         except TypeError:
-            print("WARNING: cannot solve inequality {} for a".format(inequality))
+            logger.warning("cannot solve inequality {} for a".format(inequality))
             continue
         # print ("{} > {}: {}".format(prices_b1[i], prices_b1[i+1], solution))
         result = result.intersect(solution)
@@ -140,26 +140,26 @@ def show_prices(sequence:str, price_vars:list, budget_eqs:list, switches:list):
     switch_eqs = switch_equalities(switches, price_vars)
     prices_sol = linsolve(budget_eqs + switch_eqs, price_vars).args
     if len(prices_sol)==0:
-        logger.info("{}, {}: No prices!".format(sequence, switches))
+        logger.debug("{}, {}: No prices!".format(sequence, switches))
         return
     prices = prices_sol[0]
     possible_budgets = budget_range(prices)
     if possible_budgets.is_EmptySet:
-        logger.info("{}, {}: {}, No budget!".format(sequence, switches, prices))
+        logger.debug("{}, {}: {}, No budget!".format(sequence, switches, prices))
         return
     else:
         switches_str = ", ".join([str(s) for s in switches])
-        print("{}:      handles {}.     Requires a in {}".format("    ".join([str(p) for p in prices]), switches_str, possible_budgets))
+        logger.info("{}:      handles {}.     Requires a in {}".format("    ".join([str(p) for p in prices]), switches_str, possible_budgets))
 
 
 def analyze_sequence(sequence:str, undetermined_switches:list, price_vars:list, budget_vars:list):
-    print(sequence)
+    logger.info(sequence)
     budget_eqs = budget_equalities(sequence, price_vars, budget_vars)
     num_items = len(price_vars)
     for i in range(num_items):
         added_constraint = "{}:{}".format(i+1,i) # add an equality constraint on two adjacent positions
         show_prices(sequence, price_vars, budget_eqs, undetermined_switches+[added_constraint])
-    print()
+    logger.info("\n")
 
 
 if __name__ == "__main__":

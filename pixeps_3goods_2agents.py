@@ -5,6 +5,10 @@ Tries to automatically find pixeps in the case of 3 goods and 2 additive identic
 """
 
 
+import symbolic_picking_sequences, sys, logging
+if len(sys.argv)<2 or sys.argv[1]!="quiet":
+    symbolic_picking_sequences.logger.setLevel(logging.INFO)
+
 from symbolic_picking_sequences import analyze_sequence
 from sympy import symbols
 

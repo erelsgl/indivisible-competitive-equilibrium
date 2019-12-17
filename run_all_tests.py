@@ -4,8 +4,9 @@
 import glob, importlib, os, sys
 
 for file in glob.iglob("*.py"):
-    if file==__file__: continue
-    print("\nProcessing "+file)
+    if "run_all_tests" in file:
+        continue
+    print("\n\nProcessing "+file)
     # print(sys.executable+" "+file)
     os.system('"'+sys.executable+'"'+" "+file+" quiet")
     # importlib.import_module(file.replace(".py",""))

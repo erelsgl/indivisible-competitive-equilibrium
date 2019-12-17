@@ -35,11 +35,11 @@ prefs_of_Dana  = preferences.add_low_value_good(quartets + triplets + pairs + si
 prefs = [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl, prefs_of_Dana]
 budgets = [160, 130, 90, 66]
 
-print("\nWith the preferences in the paper, there are no competitive equilibria:")
+print("\nWith all four agents, there are no competitive equilibria:")
 ce.display(ce.find_equilibrium(items, prefs, budgets))
 
 print("\nWith only the three highest-income agents, a competitive equilibrium exists:")
 ce.display(ce.find_equilibrium(items, prefs[0:3], budgets[0:3]))
 
-print("\nWith the preferences in the paper, even a *personalized* equilibrium does not exist:")
+print("\nWith all four agents, even a *personalized* equilibrium does not exist:")
 ce.display(ce.find_personalized_equilibrium(items, prefs, budgets))
