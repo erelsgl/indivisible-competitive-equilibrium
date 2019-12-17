@@ -12,6 +12,8 @@ SINCE:  2019-08
 import preferences
 import competitive_equilibrium as ce
 import sys, logging
+from agents import Agent
+
 if len(sys.argv)<2 or sys.argv[1]!="quiet":
     ce.logger.setLevel(logging.INFO)
 

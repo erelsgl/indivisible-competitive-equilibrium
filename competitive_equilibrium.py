@@ -11,6 +11,7 @@ SINCE:  2019-08
 import numpy as np
 from scipy.optimize import linprog
 from allocations import allocations
+from agents import Agent
 
 import logging, sys
 logger = logging.getLogger(__name__)
@@ -20,13 +21,119 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 
+def is_equilibrium_price(all_items: str, preferences: list, budgets: list, allocation: list, prices:list)->bool:
+    """
+    Check if the given price-vector satisfies the CE conditions for all agents.
+
+    :param all_items:    a string in which each char represents an item.
+    :param budgets:      a list of numbers, each represents the budget of one agent.
+    :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
+    :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
+    :param prices:       the price-vector to check; one price per item.
+
+    :return: True or False
+
+    >>> prefs = 2*[["xy", "x", "y", ""]]
+    >>> is_equilibrium_price("xy", prefs, [5,2], ["x","y"], prices=[5,2])
+    True
+    >>> is_equilibrium_price("xy", prefs, [5,2], ["x","y"], prices=[5,3])
+    False
+    >>> is_equilibrium_price("xy", prefs, [5,2], ["y","x"], prices=[5,2])
+    False
+    >>> prefs = 2*[["xyo", "xy", "xo", "x", "yo", "y", "o", ""]]
+    >>> is_equilibrium_price("xyo", prefs, [5,2], ["x","yo"], prices=[5, 1.5, 0.5])
+    True
+    >>> is_equilibrium_price("xyo", prefs, [5,2], ["x","oy"], prices=[5, 1.5, 0.5])
+    True
+    >>> is_equilibrium_price("xyo", prefs, [5,2], ["xo","y"], prices=[4.5, 2, 0.5])
+    True
+    >>> is_equilibrium_price("xyo", prefs, [5,2], ["ox","y"], prices=[4.5, 2, 0.5])
+    True
+    """
+    agents = Agent.profile(preferences)
+    num_agents = len(agents)
+
+    for i in range(num_agents):
+        bundle_of_i = allocation[i]
+        budget_of_i = budgets[i]
+        bundle_of_i_price = _bundle_price(all_items, bundle_of_i, prices)
+
+        # Check CE condition 1 - budget condition:
+        if bundle_of_i_price!=budgets[i]:
+           logger.info("The bundle of agent %d costs %f while his budget is %f", i, bundle_of_i_price, budget_of_i)
+           return False
+
+        # Check CE condition 2 - preference condition:
+        if not _is_condition_2_satisfied_for_agent(all_items, agents[i], budget_of_i, bundle_of_i, prices):
+            return False
+
+    return True
+
+
+
+def is_equilibrium_price_for_agent(all_items: str, preferences: list, budgets: list, allocation: list, prices:list, agent_index:int)->bool:
+    """
+    Check if the given price-vector is a "personalized competitive equilibrium" for the given agent.
+    This means that condition 1 should be satisfied for all agents, but condition 2 may be satisfied only for the given agent.
+
+    :param all_items:    a string in which each char represents an item.
+    :param budgets:      a list of numbers, each represents the budget of one agent.
+    :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
+    :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
+    :param prices:       the price-vector to check; one price per item.
+    :param agent_index:  the checked agent.
+
+    :return: True or False
+
+    >>> prefs = 2*[["xy", "x", "y", ""]]
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["x","y"], prices=[5,2], agent_index=0)
+    True
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["x","y"], prices=[5,2], agent_index=1)
+    True
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["x","y"], prices=[5,3], agent_index=0)
+    False
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["x","y"], prices=[5,3], agent_index=1)
+    False
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["y","x"], prices=[2,5], agent_index=0)
+    False
+    >>> is_equilibrium_price_for_agent("xy", prefs, [5,2], ["y","x"], prices=[2,5], agent_index=1)
+    True
+    >>> prefs = 2*[["xyo", "xy", "xo", "x", "yo", "y", "o", ""]]
+    >>> is_equilibrium_price_for_agent("xyo", prefs, [5,2], ["x","yo"], prices=[5, 1.5, 0.5], agent_index=0)
+    True
+    >>> is_equilibrium_price_for_agent("xyo", prefs, [5,2], ["xo","y"], prices=[4.5, 2, 0.5], agent_index=0)
+    True
+    >>> is_equilibrium_price_for_agent("xyo", prefs, [5,2], ["ox","y"], prices=[4.5, 2, 0.5], agent_index=0)
+    True
+    """
+    agents = Agent.profile(preferences)
+    num_agents = len(agents)
+
+    for i in range(num_agents):
+        bundle_of_i = allocation[i]
+        budget_of_i = budgets[i]
+        bundle_of_i_price = _bundle_price(all_items, bundle_of_i, prices)
+
+        # Check CE condition 1 - budget condition:
+        if bundle_of_i_price!=budgets[i]:
+           logger.info("The bundle of agent %d costs %f while his budget is %f", i, bundle_of_i_price, budget_of_i)
+           return False
+
+    # Check CE condition 2 - preference condition - only for agent_index:
+    if not _is_condition_2_satisfied_for_agent(all_items, agents[agent_index], budgets[agent_index], allocation[agent_index], prices):
+        return False
+
+    return True
+
+
+
 
 def find_equilibrium(all_items: str, preferences: list, budgets: list, negative_prices: bool = False) ->(list, list):
     """
     Given budgets and preferences, find an allocation and price-vector p
     that are a competitive equilibrium (return None of not found)
 
-    :param items:    a string in which each char represents an item.
+    :param all_items:    a string in which each char represents an item.
     :param budgets:  a list of numbers, each represents the budget of one agent.
     :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
 
@@ -42,13 +149,15 @@ def find_equilibrium(all_items: str, preferences: list, budgets: list, negative_
     None
     """
     all_items = "".join(sorted(all_items))
-    num_agents = len(budgets)
-    if num_agents!=len(preferences):
+
+    agents = Agent.profile(preferences)
+    num_agents = len(agents)
+    if num_agents!=len(budgets):
         raise ValueError("Number of budgets ({}) does not match number of preferences ({})".format(len(budgets), len(preferences)))
 
     allocation_count = 1
     for allocation in allocations(all_items, num_agents):
-        prices = find_equilibrium_prices(all_items, preferences, budgets, allocation, negative_prices=negative_prices)
+        prices = find_equilibrium_prices(all_items, agents, budgets, allocation, negative_prices=negative_prices)
         if prices is  None:
             logger.info("%d. Allocation %s:  no equilibrium prices", allocation_count, allocation)
         else:
@@ -68,6 +177,7 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     :param budgets:  a list of numbers, each represents the budget of one agent.
     :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
     :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
+
     :param negative_prices: whether to force all prices to be negative (for allocation of bads/chores). Default=False
     :return: the vector of prices, as returned by scipy.linprog
 
@@ -81,7 +191,7 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     [2.5 2.5]
     >>> print(find_equilibrium_prices("xy",preferences,budgets,allocation=["","xy"]))
     None
-    >>> chore_preferences = [reversed(p) for p in preferences]
+    >>> chore_preferences = [list(reversed(p)) for p in preferences]
     >>> chore_budgets = [-2, -5]
     >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["y","x"],negative_prices=True))
     [-5. -2.]
@@ -92,8 +202,10 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     >>> print(find_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["","xy"],negative_prices=True))
     None
     """
-    num_agents = len(budgets)
-    if num_agents!=len(preferences):
+    agents = Agent.profile(preferences)
+    # print([a.preferences for a in agents])
+    num_agents = len(agents)
+    if num_agents!=len(budgets):
         raise ValueError("Number of budgets ({}) does not match number of preferences ({})".format(len(budgets), len(preferences)))
     if num_agents!=len(allocation):
         raise ValueError("Number of budgets ({}) does not match number of bundles ({})".format(len(budgets), len(allocation)))
@@ -118,7 +230,7 @@ def find_equilibrium_prices(all_items: str, preferences: list, budgets: list, al
     #    better_bundle_i    * prices  -  slack  >=    budget_i
     #    - better_bundle_i  * prices  +  slack  <=  - budget_i
     #    A_upperbound       * [prices , slack]  <=  b_upperbound
-    (A_upperbound, b_upperbound) = _preference_constraints(all_items, preferences, budgets, allocation)
+    (A_upperbound, b_upperbound) = _preference_constraints(all_items, agents, budgets, allocation)
 
     result = _solve_linear_program(minimization_coefficients, A_equality, b_equality, A_upperbound, b_upperbound, bounds)
     if result is None:
@@ -165,13 +277,15 @@ def find_personalized_equilibrium(all_items: str, preferences: list, budgets: li
     None
     """
     all_items = "".join(sorted(all_items))
-    num_agents = len(budgets)
-    if num_agents!=len(preferences):
+
+    agents = Agent.profile(preferences)
+    num_agents = len(agents)
+    if num_agents!=len(budgets):
         raise ValueError("Number of budgets ({}) does not match number of preferences ({})".format(len(budgets), len(preferences)))
 
     allocation_count = 1
     for allocation in allocations(all_items, num_agents):
-        prices = find_personalized_equilibrium_prices(all_items, preferences, budgets, allocation, negative_prices=negative_prices)
+        prices = find_personalized_equilibrium_prices(all_items, agents, budgets, allocation, negative_prices=negative_prices)
         agents_with_valid_prices = [i for i in range(num_agents) if prices[i] is not None]
         if len(agents_with_valid_prices)<num_agents:
             logger.info("%d. Allocation %s:  personalized equilibrium prices only for %s", allocation_count, allocation, agents_with_valid_prices)
@@ -208,19 +322,20 @@ def find_personalized_equilibrium_prices(all_items: str, preferences: list, budg
     [array([0., 5.]), array([2.5, 2.5])]
     >>> print(find_personalized_equilibrium_prices("xy",preferences,budgets,allocation=["","xy"]))
     [None, array([0., 2.])]
-    >>> chore_preferences = [reversed(p) for p in preferences]
+    >>> chore_preferences = [list(reversed(p)) for p in preferences]
     >>> chore_budgets = [-2, -5]
     >>> print(find_personalized_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["y","x"],negative_prices=True))
     [array([-5., -2.]), array([-5., -2.])]
     >>> print(find_personalized_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["x","y"],negative_prices=True))
-    [array([-2., -5.]), None]
+    [None, array([-2., -5.])]
     >>> print(find_personalized_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["xy",""],negative_prices=True))
     [None, None]
     >>> print(find_personalized_equilibrium_prices("xy",chore_preferences,chore_budgets,allocation=["","xy"],negative_prices=True))
     [None, None]
     """
-    num_agents = len(budgets)
-    if num_agents!=len(preferences):
+    agents = Agent.profile(preferences)
+    num_agents = len(agents)
+    if num_agents!=len(budgets):
         raise ValueError("Number of budgets ({}) does not match number of preferences ({})".format(len(budgets), len(preferences)))
     if num_agents!=len(allocation):
         raise ValueError("Number of budgets ({}) does not match number of bundles ({})".format(len(budgets), len(allocation)))
@@ -235,7 +350,7 @@ def find_personalized_equilibrium_prices(all_items: str, preferences: list, budg
     prices = []
     for i in range(num_agents):
         # The preference constraints are personal for each agent:
-        (A_upperbound, b_upperbound) = _personal_preference_constraints(all_items, preferences[i], budgets[i], allocation[i])
+        (A_upperbound, b_upperbound) = _personal_preference_constraints(all_items, agents[i], budgets[i], allocation[i])
         result = _solve_linear_program(minimization_coefficients, A_equality, b_equality, A_upperbound, b_upperbound, bounds)
         if result is None:
             prices.append(None)
@@ -269,10 +384,11 @@ def display(equilibrium:tuple):
 
 
 
+
 ########## INTERNAL FUNCTIONS
 
 
-def bundle_to_row(all_items:str, bundle:str, coefficient:float)->list:
+def _bundle_to_row(all_items:str, bundle:str, coefficient:float)->list:
     """
     Given a bundle (as a string),
           construct a row of coefficients that represents this bundle.
@@ -281,17 +397,29 @@ def bundle_to_row(all_items:str, bundle:str, coefficient:float)->list:
     :param coefficient: the coefficient to put in the row for each item in the bundle.
     :return:  a list where all locations that correspond to the bundle equal coefficient, and all others equal 0.
 
-    >>> bundle_to_row("wxyz", "wy", 1)
+    >>> _bundle_to_row("wxyz", "wy", 1)
     [1, 0, 1, 0]
-    >>> bundle_to_row("wxyz", "", 1)
+    >>> _bundle_to_row("wxyz", "", 1)
     [0, 0, 0, 0]
-    >>> bundle_to_row("wxyz", "zxyw", -1)
+    >>> _bundle_to_row("wxyz", "zxyw", -1)
     [-1, -1, -1, -1]
     """
     result = len(all_items) * [0]
     for item in bundle:
         result[all_items.index(item)] = coefficient
     return result
+
+def _bundle_price(all_items:str, bundle:str, prices:list)->float:
+    """
+    Calculate the price of the given bundle with the given price-vector.
+    :param all_items:  a string representing all items in a certain fixed order.
+    :param bundle:     a string representing a subset of the items.
+    :param prices:     a vector of prices, a price per item.
+    :return: the price of the bundle with this price-vector.
+    """
+    quantities = _bundle_to_row(all_items, bundle, 1)
+    return sum([prices[i] * quantities[i] for i in range(len(all_items))])
+
 
 MAX_SLACK=1000  # it should be infinity, but infinity causes problems with linprog.
 def _price_bounds(num_items: int, negative_prices:bool)->list:
@@ -329,14 +457,14 @@ def _budget_constraints(all_items: str, budgets: list, allocation: list)->tuple:
     b_equality = []
     for i in range(num_agents):
         if len(allocation[i])>0 or budgets[i]<0:
-            row = bundle_to_row(all_items, allocation[i], 1)
+            row = _bundle_to_row(all_items, allocation[i], 1)
             row.append(0)    # the slack is irrelevant for the budget equalities
             A_equality.append(row)
             b_equality.append(budgets[i])
     return (A_equality, b_equality)
 
 
-def _preference_constraints(all_items: str, preferences: list, budgets: list, allocation: list)->tuple:
+def _preference_constraints(all_items: str, agents: list, budgets: list, allocation: list)->tuple:
     """
     Create the preference constraints (inequalities):
        better_bundle_i    * prices  >  budget_i
@@ -346,23 +474,26 @@ def _preference_constraints(all_items: str, preferences: list, budgets: list, al
 
     :param all_items:    a string in which each char represents an item.
     :param budgets:  a list of numbers, each represents the budget of one agent.
-    :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
+    :param agents:   a list of Agent objects.
     :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
 
     :return: (A_upperbound, b_upperbound)
 
-    >>> (A_ub,b_ub) = _preference_constraints("xy", [["xy", "x", "y", ""], ["xy", "x", "y", ""]], [5,2], ["x","y"])
+    >>> agent = Agent(["xy", "x", "y", ""])
+    >>> (A_ub,b_ub) = _preference_constraints("xy", [agent, agent], [5,2], ["x","y"])
     >>> A_ub
-    [[-1, -1, 1], [-1, -1, 1], [-1, 0, 1]]
+    array([[-1, -1,  1],
+           [-1, -1,  1],
+           [-1,  0,  1]])
     >>> b_ub
-    [-5, -2, -2]
+    array([-5, -2, -2])
     """
     num_agents = len(budgets)
     i=0
     A_ub_stack = []
     b_ub_stack = []
     for i in range(num_agents):
-        (A_ub, b_ub) = _personal_preference_constraints(all_items, preferences[i], budgets[i], allocation[i])
+        (A_ub, b_ub) = _personal_preference_constraints(all_items, agents[i], budgets[i], allocation[i])
         if len(A_ub)>0 and len(b_ub)>0:
             A_ub_stack.append(A_ub)
             b_ub_stack.append(b_ub)
@@ -375,7 +506,7 @@ def _preference_constraints(all_items: str, preferences: list, budgets: list, al
 
 
 
-def _personal_preference_constraints(all_items: str, agent_preferences: list, agent_budget: float, agent_bundle: str)->tuple:
+def _personal_preference_constraints(all_items: str, agent: Agent, agent_budget: float, agent_bundle: str)->tuple:
     """
     Create the preference constraints (inequalities) for a single agent:
        better_bundle_i    * prices  >  budget_i
@@ -384,31 +515,66 @@ def _personal_preference_constraints(all_items: str, agent_preferences: list, ag
        A_upperbound       * [prices , slack]  <=  b_upperbound
 
     :param all_items:    a string in which each char represents an item.
-    :param budgets:  a list of numbers, each represents the budget of one agent.
-    :param preferences:  a list of lists of strings, each list represents the preference-relation of an agent, from best to worst (by the same order as the budgets).
-    :param allocation:   a list of strings, each represents the bundle allocated to one agent (by the same order as the budgets).
+    :param agent_budget: the budget of this agent.
+    :param agent:        an Agent object, with a strict-preferences list.
+    :param agent_bundle:   a string representing the bundle allocated to the agent.
 
     :return: (A_upperbound, b_upperbound)
 
-    >>> (A_ub,b_ub) = _preference_constraints("xy", [["xy", "x", "y", ""], ["xy", "x", "y", ""]], [5,2], ["x","y"])
+    >>> agent = Agent(["xy", "x", "y", ""])
+    >>> (A_ub,b_ub) = _personal_preference_constraints("xy", agent, 5, "x")
     >>> A_ub
-    [[-1, -1, 1], [-1, -1, 1], [-1, 0, 1]]
+    [[-1, -1, 1]]
     >>> b_ub
-    [-5, -2, -2]
+    [-5]
+    >>> (A_ub,b_ub) = _personal_preference_constraints("xy", agent, 2, "y")
+    >>> A_ub
+    [[-1, -1, 1], [-1, 0, 1]]
+    >>> b_ub
+    [-2, -2]
     """
     A_upperbound = []
     b_upperbound = []
     # Loop over all bundles, from the best (for i) down to agent_bundle:
-    for better_bundle in agent_preferences:
-        if better_bundle == agent_bundle:
-            break   # this and all remaining bundles are worse than bundle_allocated_to_i
-        row = bundle_to_row(all_items, better_bundle, -1)
+    for preferred_bundle in agent.bundles_preferred_to(agent_bundle):
+        row = _bundle_to_row(all_items, preferred_bundle, -1)
         row.append(1)      # coefficient of the slack variable
         A_upperbound.append(row)
         b_upperbound.append(-agent_budget)
     return (A_upperbound, b_upperbound)
 
 
+
+
+def _is_condition_2_satisfied_for_agent(all_items: str, agent: Agent, agent_budget: float, agent_bundle: str, prices:list)->bool:
+    """
+    Check if the given price-vector satisfies the CE condition 2 for the given agent.
+    CE condition 2 means that all bundles that the agent prefers to his bundle cost more than his budget.
+
+    :param all_items:    a string in which each char represents an item.
+    :param agent_budget: the budget of this agent.
+    :param agent:        an Agent object, with a strict-preferences list.
+    :param agent_bundle:   a string representing the bundle allocated to the agent.
+
+    :return: True or False
+
+    >>> agent = Agent(["xy", "x", "y", ""])
+    >>> _is_condition_2_satisfied_for_agent("xy", agent, 5, "y", prices=[7,5])
+    True
+    >>> _is_condition_2_satisfied_for_agent("xy", agent, 5, "y", prices=[2,5])
+    False
+    >>> _is_condition_2_satisfied_for_agent("xy", agent, 5, "x", prices=[2,5])
+    True
+    """
+    # Loop over all bundles, from the best (for i) down to agent_bundle:
+    for preferred_bundle in agent.bundles_preferred_to(agent_bundle):
+        preferred_bundle_price = _bundle_price(all_items, preferred_bundle, prices)
+        if preferred_bundle_price <= agent_budget:
+            logger.info("The agent can afford %s since it costs only %f", preferred_bundle, preferred_bundle_price)
+            return False
+
+    logger.info("The agent cannot afford any bundle better than %s", agent_bundle)
+    return True   # The remaining bundles are worse than agent_bundle
 
 
 

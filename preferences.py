@@ -1,10 +1,12 @@
 #!python3
 
 """
-Utilities for creating monotonic preferences (total order on bundles).
+Utilities for creating strict preferences (total order on bundles).
 """
 
 import itertools
+
+
 
 def bundles_of_size(items:str, size:int)->list:
     return ["".join(bundle) for bundle in  itertools.combinations(items, size)]

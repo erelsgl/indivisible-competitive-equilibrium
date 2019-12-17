@@ -21,7 +21,7 @@ if len(sys.argv)<2 or sys.argv[1]!="quiet":
 
 high_value_goods = "wxyz"
 low_value_good = "o"
-all_items = high_value_goods + low_value_good
+items = high_value_goods + low_value_good
 empty = [""]
 singletons = list(high_value_goods)
 pairs = preferences.pairs(high_value_goods)
@@ -33,19 +33,13 @@ prefs_of_Bob   = preferences.add_low_value_good(quartets + triplets + pairs + ["
 prefs_of_Carl  = preferences.add_low_value_good(quartets + triplets + pairs + ["x", "y", "w", "z"] + empty, low_value_good)
 prefs_of_Dana  = preferences.add_low_value_good(quartets + triplets + pairs + singletons + empty, low_value_good)
 prefs = [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl, prefs_of_Dana]
-budgets = [16, 11, 9, 6]
+budgets = [160, 130, 90, 66]
 
 print("\nWith the preferences in the paper, there are no competitive equilibria:")
-ce.display(ce.find_equilibrium(all_items, prefs, budgets))
+ce.display(ce.find_equilibrium(items, prefs, budgets))
 
-print("\nAs a control, if we change the budgets, there is a competitive equilibrium:")
-alternative_budgets = [18, 11, 9, 6]
-ce.display(ce.find_equilibrium(all_items, prefs, alternative_budgets))
+print("\nEven with only the three highest-income agents, a competitive equilibrium does not exist!")
+ce.display(ce.find_equilibrium(items, prefs[0:3], budgets[0:3]))
 
-print("\nInterestingly, a *personalized* competitive equilibrium exists!")
-ce.display(ce.find_personalized_equilibrium(all_items, prefs, budgets))
-# Allocation ['wx', 'z', 'y', 'o']:  equilibrium prices of owxyz=[
-#  [ 6.  14.   2.   9.  11. ]
-#  [ 6.  12.5  3.5  9.  11. ]
-#  [ 6.   3.5 12.5  9.  11. ]
-#  [ 6.   8.   8.   9.  11. ]]
+print("\nWith the preferences in the paper, even a *personalized* equilibrium does not exist:")
+ce.display(ce.find_personalized_equilibrium(items, prefs, budgets))
