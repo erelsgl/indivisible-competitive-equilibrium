@@ -38,7 +38,7 @@ budgets = [160, 130, 90, 66]
 print("\nWith the preferences in the paper, there are no competitive equilibria:")
 ce.display(ce.find_equilibrium(items, prefs, budgets))
 
-print("\nEven with only the three highest-income agents, a competitive equilibrium does not exist!")
+print("\nWith only the three highest-income agents, a competitive equilibrium exists:")
 ce.display(ce.find_equilibrium(items, prefs[0:3], budgets[0:3]))
 
 print("\nWith the preferences in the paper, even a *personalized* equilibrium does not exist:")
