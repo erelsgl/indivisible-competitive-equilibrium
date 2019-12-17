@@ -1,10 +1,10 @@
 #!python3
 
 """
-Proves the non-existence result for 4 goods and 4 agents
+Proves the non-existence result for 4 goods and 4 monotonically-increasing agents
 by exhaustively checking all allocations.
 
-See Subsection 6.3, Theorem 4.
+See Subsection 6.2, Theorem 3.
 
 AUTHOR: Erel Segal-Halevi
 SINCE:  2019-08
@@ -20,30 +20,24 @@ if len(sys.argv)<2 or sys.argv[1]!="quiet":
 items = "wxyz"
 
 empty = [""]
-singletons = list(items)
-pairs = preferences.pairs(items)
-triplets = preferences.triplets(items)
-quartets = preferences.quartets(items)
+singletons = list(items)               # all singleton subsets in an arbitrary order
+pairs = preferences.pairs(items)       # all pairs of items in an arbitrary order
+triplets = preferences.triplets(items) # all triplets of items in an arbitrary order
+quartets = preferences.quartets(items) # all quartets of items in an arbitrary order
 
-prefs_of_Alice = quartets + triplets + ["wx", "wy", "wz", "xy", "w", "xz", "yz", "x", "y", "z"] + empty
-prefs_of_Bob   = quartets + triplets + pairs + ["w", "z", "x", "y"] + empty
-prefs_of_Carl  = quartets + triplets + pairs + ["x", "y", "w", "z"] + empty
-prefs_of_Dana  = quartets + triplets + pairs + singletons + empty
-prefs = [prefs_of_Alice, prefs_of_Bob, prefs_of_Carl, prefs_of_Dana]
-budgets = [16, 11, 9, 6]
+prefs_of_Alice = quartets + triplets + ["wx", "yz", "wy", "xz", "wz", "xy"] + singletons + empty
+prefs_of_Bob   = quartets + triplets + pairs + ["w", "x", "y", "z"] + empty
+prefs_of_others = quartets + triplets + pairs + singletons + empty
+prefs = [prefs_of_Alice, prefs_of_Bob, prefs_of_others, prefs_of_others]
+budgets = [20, 11, 8, 1]
 
 print("\nWith the preferences in the paper, there are no competitive equilibria:")
 ce.display(ce.find_equilibrium(items, prefs, budgets))
 
-print("\nAs a control, if we change the budgets, there is a competitive equilibrium:")
-alternative_budgets = [18, 11, 9, 6]
-ce.display(ce.find_equilibrium(items, prefs, alternative_budgets))
+print("\nAs a control, if we change Alice's preferences, there is a competitive equilibrium:")
+alternative_prefs_of_Alice = quartets + triplets + ["wx", "wy", "wz", "xy", "xz", "yz"] + singletons
+# print(alternative_prefs_of_Alice)
+ce.display(ce.find_equilibrium(items, [alternative_prefs_of_Alice, prefs_of_Bob, prefs_of_others, prefs_of_others], budgets))
 
-print("\nInterestingly, a *personalized* competitive equilibrium exists!")
+print("\nWith the original preferences, even a *personalized* competitive equilibrium does not exist.")
 ce.display(ce.find_personalized_equilibrium(items, prefs, budgets))
-# Allocation ['wx', 'z', 'y', '']
-# equilibrium prices of wxyz=[
-#  [11.   5.   9.  11. ]
-#  [12.5  3.5  9.  11. ]
-#  [ 3.5 12.5  9.  11. ]
-#  [ 8.   8.   9.  11. ]]
